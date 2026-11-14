@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>AuraPOS - Panel Principal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header>
+        <a href="#" class="nav-brand-container" onclick="cambiarVista('inicio', event)">
+            <div class="logo-circle-wrapper">
+                <img src="img/logo.png" alt="Logo AuraPOS" onerror="this.src='https://via.placeholder.com/80?text=LOGO'">
+            </div>
+            <div class="nav-brand-text">
+                <span class="logo-main">Aura</span><span class="logo-highlight">POS</span>
+            </div>
+        </a>
+        
+        <ul class="nav-menu">
+            <li><a href="#" onclick="cambiarVista('inicio', event)" class="active" id="link-inicio">🏠 Inicio</a></li>
+            <li><a href="#" onclick="cambiarVista('cuenta-cobro', event)" id="link-cuenta-cobro">💳 Cuenta de Cobro</a></li>
+            
+            <li class="dropdown">
+                <a href="#">🔍 Consultas ▾</a>
+                <ul class="dropdown-content">
+                    <li><a href="#" onclick="cambiarVista('consulta-clientes', event)">Clientes</a></li>
+                    <li><a href="#" onclick="cambiarVista('consulta-productos', event)">Productos</a></li>
+                    <li><a href="#" onclick="cambiarVista('consulta-cuentas', event)">Cuentas de Cobro</a></li>
+                </ul>
+            </li>
+            
+            <li><a href="#" onclick="cambiarVista('historial-ventas', event)" id="link-historial-ventas">📊 Historial de Ventas</a></li>
+            <li id="menu-auditoria" style="display: none;"><a href="#" onclick="cambiarVista('auditoria', event)">🛡️ Auditoría</a></li>
+        </ul>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span id="user-info" style="font-weight: 500; color: #fff; background: rgba(255,255,255,0.12); padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.9rem;">Rol</span>
+            <button onclick="cerrarSesion()" class="btn-action" style="background-color: #C0392B; padding: 0.5rem 1rem;">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- VISTA 1: INICIO -->
+        <div id="vista-inicio" class="section-view active">
+            <div class="card-welcome">
+                <h1 id="welcome-title" style="margin-top: 0;">¡Bienvenido al sistema!</h1>
+                <p style="font-size: 1.1rem; opacity: 0.9;">Sistema de Cartera y Gestión de Negocio.</p>
+            </div>
+        </div>
+
+        <!-- VISTA 2: CUENTA DE COBRO -->
+        <div id="vista-cuenta-cobro" class="section-view">
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <h2>Registrar Cuenta de Cobro</h2>
+                <p style="color: #666; margin-bottom: 1.5rem;">Genera un nuevo registro con cálculo automático de totales, plazos y ciudad.</p>
+                
+                <form id="form-cuenta-cobro" onsubmit="registrarCuentaCobro(event)">
+                    
+                    <div class="form-group">
+                        <label for="cc-consecutivo">Consecutivo</label>
+                        <input type="text" id="cc-consecutivo" readonly style="background-color: #eaeaea; font-weight: bold;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-cliente">Cliente</label>
+                        <select id="cc-cliente" onchange="verificarCrearCliente(this)" required>
+                            <option value="">Seleccione un cliente...</option>
+                            <option value="nuevo" style="font-weight: bold; color: #2980B9;">+ Crear nuevo cliente...</option>
+                        </select>
+                    </div>
+
+                    <!-- Bloque para registrar nuevo cliente -->
+                    <div id="bloque-nuevo-cliente" style="display: none; background: #f9f9f9; padding: 1rem; border-radius: 8px; border: 1px dashed #ccc; margin-bottom: 1.2rem;">
+                        <h4 style="margin-top: 0; color: #581845;">Registrar Nuevo Cliente</h4>
+                        <div class="form-group" style="margin-bottom: 0.8rem;">
+                            <input type="text" id="nuevo-cliente-nombre" placeholder="Nombre completo del cliente">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.8rem;">
+                            <input type="text" id="nuevo-cliente-doc" placeholder="Número de Documento">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.8rem;">
+                            <input type="text" id="nuevo-cliente-tel" placeholder="Teléfono">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 0.8rem;">
+                            <label for="nuevo-cliente-ciudad-select" style="font-size: 0.85rem;">Ciudad</label>
+                            <select id="nuevo-cliente-ciudad-select" onchange="verificarCrearCiudad(this)">
+                                <option value="">Seleccione una ciudad...</option>
+                                <option value="nueva" style="font-weight: bold; color: #2980B9;">+ Registrar nueva ciudad...</option>
+                            </select>
+                        </div>
+
+                        <div id="bloque-nueva-ciudad" style="display: none; background: #fff; padding: 0.8rem; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 0.8rem;">
+                            <div class="form-group" style="margin-bottom: 0.5rem;"><input type="text" id="nc-nombre-ciudad" placeholder="Nombre de la Ciudad"></div>
+                            <div class="form-group" style="margin-bottom: 0.5rem;"><input type="text" id="nc-departamento" placeholder="Departamento"></div>
+                            <div class="form-group" style="margin-bottom: 0;"><input type="text" id="nc-pais" placeholder="País (Ej: Colombia)" value="Colombia"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <input type="text" id="nuevo-cliente-dir" placeholder="Dirección (Opcional)">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-producto">Producto / Concepto</label>
+                        <select id="cc-producto" onchange="actualizarPrecioProducto()" required>
+                            <option value="">Seleccione un producto...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-cantidad">Cantidad</label>
+                        <input type="number" id="cc-cantidad" value="1" min="1" oninput="calcularTotal()" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-monto">Monto Total ($)</label>
+                        <input type="number" id="cc-monto" step="0.01" readonly required style="background-color: #eaeaea; font-weight: bold;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-descripcion">Descripción (Opcional)</label>
+                        <textarea id="cc-descripcion" rows="2" placeholder="Detalles adicionales del cobro..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-condicion-pago">Condición de Pago</label>
+                        <select id="cc-condicion-pago" onchange="cambiarCondicionPago()" required>
+                            <option value="contado">Contado</option>
+                            <option value="credito">Crédito</option>
+                        </select>
+                    </div>
+
+                    <div id="bloque-contado" class="form-group">
+                        <label for="cc-metodo-pago">Método de Pago</label>
+                        <select id="cc-metodo-pago">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Nequi">Nequi</option>
+                            <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                            <option value="Tarjeta de Crédito/Débito">Tarjeta de Crédito/Débito</option>
+                        </select>
+                    </div>
+
+                    <div id="bloque-credito" class="form-group" style="display: none;">
+                        <label for="cc-plazo-credito">Plazo de Crédito</label>
+                        <select id="cc-plazo-credito" onchange="calcularVencimientoCredito()">
+                            <option value="15">15 Días</option>
+                            <option value="30">30 Días</option>
+                            <option value="60">60 Días</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="cc-fecha-emision">Fecha de Emisión</label>
+                            <input type="date" id="cc-fecha-emision" readonly style="background-color: #eaeaea;">
+                        </div>
+                        <div class="form-group">
+                            <label for="cc-fecha-vencimiento">Fecha de Vencimiento</label>
+                            <input type="date" id="cc-fecha-vencimiento" readonly style="background-color: #eaeaea;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cc-estado">Estado de la Cuenta</label>
+                        <select id="cc-estado" required>
+                            <option value="PENDIENTE">PENDIENTE</option>
+                            <option value="PAGADO">PAGADO</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-action" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-top: 1rem;">Guardar Cuenta de Cobro</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- VISTA 3: CONSULTA CLIENTES -->
+        <div id="vista-consulta-clientes" class="section-view">
+            <div class="card">
+                <h2>Consulta de Clientes</h2>
+                <table>
+                    <thead><tr><th>Documento</th><th>Nombre</th><th>Teléfono</th><th>Ciudad / Departamento</th><th>Dirección</th></tr></thead>
+                    <tbody id="tabla-clientes-dash"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA 4: CONSULTA PRODUCTOS -->
+        <div id="vista-consulta-productos" class="section-view">
+            <div class="card">
+                <h2>Consulta de Productos</h2>
+                <table>
+                    <thead><tr><th>Código</th><th>Producto</th><th>Precio</th><th>Stock</th></tr></thead>
+                    <tbody id="tabla-productos-dash"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA 5: CONSULTA CUENTAS DE COBRO -->
+        <div id="vista-consulta-cuentas" class="section-view">
+            <div class="card">
+                <h2>Consulta de Cuentas por Cobrar</h2>
+                <table>
+                    <thead><tr><th>Consecutivo</th><th>Cliente</th><th>Total</th><th>Saldo Pendiente</th><th>Estado</th></tr></thead>
+                    <tbody id="tabla-cuentas-dash"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA 6: HISTORIAL DE VENTAS -->
+        <div id="vista-historial-ventas" class="section-view">
+            <div class="card">
+                <h2>Historial de Ventas</h2>
+                <table>
+                    <thead><tr><th>ID Pago</th><th>Cuenta</th><th>Abono</th><th>Fecha</th></tr></thead>
+                    <tbody id="tabla-historial"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA 7: AUDITORÍA -->
+        <div id="vista-auditoria" class="section-view">
+            <div class="card">
+                <h2>Auditoría del Sistema</h2>
+                <table>
+                    <thead><tr><th>ID</th><th>Usuario</th><th>Acción</th><th>Tabla</th><th>Registro</th><th>IP</th><th>Fecha Creación</th><th>Última Actualización</th></tr></thead>
+                    <tbody id="tabla-auditoria"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>© 2026 AuraPOS — Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
